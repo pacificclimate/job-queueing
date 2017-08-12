@@ -7,8 +7,14 @@ import re
 
 from dateutil import parser as dateparser
 
-from dp.jobqueueing.jobqueueing_db import gcq_statuses
-from dp.argparse_helpers import log_level_choices, strtobool
+from jobqueueing import gcq_statuses
+
+
+log_level_choices = 'NOTSET DEBUG INFO WARNING ERROR CRITICAL'.split()
+
+
+def strtobool(string):
+    return string.lower() in {'true', 't', 'yes', '1'}
 
 
 def walltime(string):
