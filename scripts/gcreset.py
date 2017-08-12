@@ -18,10 +18,10 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dp.script_helpers import default_logger
-from dp.jobqueueing.argparse_helpers import add_global_arguments, add_reset_arguments
-from dp.jobqueueing.jobqueueing_db import GenerateClimosQueueEntry
-from dp.jobqueueing.jobqueueing_db import gcq_statuses
+from jobqueueing.script_helpers import default_logger
+from jobqueueing.argparse_helpers import add_global_arguments, add_reset_arguments
+from jobqueueing import GenerateClimosQueueEntry
+from jobqueueing import gcq_statuses
 
 
 logger = default_logger()

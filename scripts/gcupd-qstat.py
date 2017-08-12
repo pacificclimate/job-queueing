@@ -17,9 +17,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import yaml
 
-from dp.script_helpers import default_logger
-from dp.jobqueueing.argparse_helpers import add_global_arguments
-from dp.jobqueueing.jobqueueing_db import GenerateClimosQueueEntry
+from jobqueueing.script_helpers import default_logger
+from jobqueueing.argparse_helpers import add_global_arguments
+from jobqueueing import GenerateClimosQueueEntry
 
 
 logger = default_logger()

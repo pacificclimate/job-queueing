@@ -29,12 +29,13 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dp.script_helpers import default_logger
-from dp.jobqueueing.argparse_helpers import \
+from jobqueueing.script_helpers import default_logger
+from jobqueueing.argparse_helpers import \
     add_global_arguments, add_gcadd_arguments, \
     add_execution_environment_arguments, \
     add_generate_climos_arguments, add_pbs_arguments, add_ext_submit_arguments
-from dp.jobqueueing.jobqueueing_db import GenerateClimosQueueEntry
+
+from jobqueueing import GenerateClimosQueueEntry
 
 
 logger = default_logger()
