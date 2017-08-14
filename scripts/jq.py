@@ -148,7 +148,9 @@ if __name__ == '__main__':
     # submit
     submit_parser = subparsers.add_parser(
         'submit',
-        help='Reset the status of a queue entry'
+        help='Dequeue one or more generate_climos queue entries with NEW '
+             'status, and submit a PBS job for each, updating the queue '
+             'entries accordingly.'
     )
     submit_parser.set_defaults(action=submit)
     add_submit_arguments(submit_parser)
