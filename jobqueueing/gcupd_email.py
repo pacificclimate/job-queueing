@@ -1,6 +1,6 @@
 #!python
 """
-Script to update the status of a queue entry based on the content of a
+Update the status of a queue entry based on the content of a
 standard status email sent by PBS. Contents of the status email is read
 from stdin.
 
@@ -14,21 +14,11 @@ WARNING: This script does not enforce any ordering of start and terminate
 status changes.
 """
 
-from argparse import ArgumentParser
 import datetime
-import logging
 import re
-import sys
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import add_global_arguments
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-
-
-logger = default_logger()
 
 
 def update_generate_climos_queue_from_status_email(session, status_email):
@@ -94,25 +84,3 @@ def update_generate_climos_queue_from_status_email(session, status_email):
     session.commit()
     return 0
 
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    update_generate_climos_queue_from_status_email(
-        session, '\n'.join(sys.stdin))
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Update generate_climos queue using PBS status email')
-    add_global_arguments(parser)
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    for k in 'database loglevel'.split():
-        logger.debug('{}: {}'.format(k, getattr(args, k)))
-
-    exit_status = main(args)
-    sys.exit(exit_status)

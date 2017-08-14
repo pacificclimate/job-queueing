@@ -17,13 +17,7 @@ setup(
         PyYAML
     '''.split(),
     scripts='''
-        scripts/gcadd.py
-        scripts/gcalter-params.py
-        scripts/gclist.py
-        scripts/gcreset.py
-        scripts/gcsub.py
-        scripts/gcupd-email.py
-        scripts/gcupd-qstat.py
+        scripts/jq.py
     '''.split(),
     classifiers='''
         Development Status :: 4 - Beta,

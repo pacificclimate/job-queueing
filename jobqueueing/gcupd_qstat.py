@@ -1,28 +1,19 @@
 #!python
 """
-Script to update the status of entries in generate climos queue using `qstat`.
+Update the status of entries in generate climos queue using `qstat`.
 
 `qstat` is called for each submitted job in the queue, and the result is used to
 update the queue entry for that job.
 """
 
-from argparse import ArgumentParser
-import logging
 import re
-import sys
 from subprocess import Popen, PIPE
 
 from dateutil import parser as dateparser
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import yaml
 
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import add_global_arguments
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-
-
-logger = default_logger()
 
 
 def qstat_to_yaml(string):
@@ -82,24 +73,3 @@ def update(session):
         qstat_item = yaml.load(qstat_to_yaml(stdout.decode('utf-8')))[0]
         update_from_qstat_item(session, entry, qstat_item)
 
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    update(session)
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Update generate_climos queue using PBS status email')
-    add_global_arguments(parser)
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    for k in 'database loglevel'.split():
-        logger.debug('{}: {}'.format(k, getattr(args, k)))
-
-    exit_status = main(args)
-    sys.exit(exit_status)

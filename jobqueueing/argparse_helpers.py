@@ -106,6 +106,9 @@ def add_submit_arguments(parser):
     group.add_argument(
         '-n', '--number', type=int, dest='number', default=1,
         help='Number of files to submit')
+    group.add_argument(
+        '--test-job', dest='test_job', action='store_true',
+        help='Submit a test job that performs no work')
     return group
 
 
