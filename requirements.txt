@@ -1,2 +1,4 @@
 alembic
 PyYAML
+# for testing
+pytest
