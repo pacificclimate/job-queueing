@@ -17,7 +17,7 @@ setup(
         PyYAML
     '''.split(),
     scripts='''
-        scripts/jq.py
+        scripts/jq
     '''.split(),
     classifiers='''
         Development Status :: 4 - Beta,
