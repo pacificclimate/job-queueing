@@ -1,0 +1,14 @@
+language: python
+dist: trusty
+sudo: false
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+install:
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+  - pip install .
+# command to run tests
+script: PYTHONPATH=. py.test -v
