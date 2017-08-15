@@ -43,7 +43,7 @@ Configuration
 
 There's little to configure in JQ, just a couple of environment variables and those all optional:
 
-- ``GCQ_DATABASE``: The Job Queueing database to run against. There are at present two standard databases
+- ``JQ_DATABASE``: The Job Queueing database to run against. There are at present two standard databases
   set up on the gluster storage nodes.
   The location of these databases may change in future (but will remain on gluster).
 
@@ -53,7 +53,7 @@ There's little to configure in JQ, just a couple of environment variables and th
   The test database (``jobqueue-test.sqlite``) is exclusively for testing JQ, and should not be used for
   normal operations.
 
-- ``GCQ_PY_VENV``: The Python virtual environment in which to run *the script submitted to PBS*.
+- ``JQ_PY_VENV``: The Python virtual environment in which to run *the script submitted to PBS*.
   (This is *not* the same as the virtual environment you are running JQ from!)
 
   There is a predefined environment suitable for JQ jobs at
@@ -62,8 +62,8 @@ There's little to configure in JQ, just a couple of environment variables and th
 
 In short, your JQ configuration should normally be::
 
-    $ export GCQ_DATABASE=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-prod.sqlite
-    $ export GCQ_PY_VENV=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv
+    $ export JQ_DATABASE=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-prod.sqlite
+    $ export JQ_PY_VENV=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv
 
 Usage
 =====
