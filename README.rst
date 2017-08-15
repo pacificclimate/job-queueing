@@ -95,3 +95,53 @@ The actions available are, in alphabetical order:
   and submit a PBS job for each, updating the queue entries accordingly.
 - ``update-email``: Update generate_climos queue using PBS status email
 - ``update-qstat``: Update generate_climos queue using PBS qstat
+
+JQ workflow
+===========
+
+This section describes the workflow for JQ. It describes the various states defined for JQ entries, and
+the actions that cause transitions from one state to another. The general format is
+
+<JQ STATE>
+    description
+
+    *Action*: Something that causes transition to --> <JQ STATE>
+
+The JQ workflow is:
+
+[no queue entry]
+    *Action*: Add to queue (``jq add``)
+        --> new JQ entry with status NEW
+
+NEW
+    Job exists in JQ but has not been submitted to PBS.
+
+    *Action*: Submit (``jq submit``)
+        --> SUBMITTED
+
+SUBMITTED
+    Job has been submitted to PBS. Actual state of PBS job is unknown.
+    The JQ state can be updated to reflect the PBS state by manual actions, see below.
+
+    Now there is also a PBS status for the job, but it is not updated dynamically in JQ.
+
+    *Action*: Update status while PBS job is running (``jq update-email`` or ``jq update-qstat``)
+        --> RUNNING
+    *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
+        --> SUCCESS
+    *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
+        --> ERROR
+
+RUNNING
+    Job has been submitted to PBS, and PBS job is known to be running.
+
+    *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
+        --> SUCCESS
+    *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
+        --> ERROR
+
+SUCCESS
+    Job has been submitted to PBS, and  PBS job completed normally.
+
+ERROR
+    Job has been submitted to PBS, and PBS job errored.
