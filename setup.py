@@ -4,7 +4,7 @@ from setuptools import setup
 __version__ = (0, 1, 0)
 
 setup(
-    name='jq',
+    name='jobqueueing',
     description='PCIC PBS job queueing support tools',
     version='.'.join(str(d) for d in __version__),
     author='Rod Glover',
