@@ -34,9 +34,9 @@ As usual, it is best to install JQ in a Python virtual environment::
     (venv) $ pip install --upgrade pip
     (venv) $ pip install .
 
-This installs the ``jq.py`` command-line script. Verify installation by running::
+This installs the ``jq`` (not ``jq.py``) command-line script. Verify installation by running::
 
-    (venv) $ jq.py --help
+    (venv) $ jq --help
 
 Configuration
 =============
@@ -70,15 +70,15 @@ Usage
 
 JQ commands are all of the form::
 
-    jq.py [<global options>] <action> [<action options>]
+    jq [<global options>] <action> [<action options>]
 
 To find out what the options and actions are, run::
 
-    (venv) $ jq.py -h
+    (venv) $ jq -h
 
 To find out the options for specific actions, run::
 
-    (venv) $ jq.py <action> -h
+    (venv) $ jq <action> -h
 
 Actions overview
 ----------------
