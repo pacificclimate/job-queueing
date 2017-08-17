@@ -1,30 +1,20 @@
 #!python
 """
-Script to dequeue one or more generate_climos queue entries with NEW status,
+Dequeue one or more generate_climos queue entries with NEW status,
 and submit a PBS job for each, updating the queue entries accordingly.
 
 Entries are dequeued in order of addition to the database (column added_time);
 i.e., it is a FIFO queue.
 """
 
-from argparse import ArgumentParser
 import datetime
-import logging
 import os.path
-import sys
 from subprocess import Popen, PIPE
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import asc
 
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import \
-    add_global_arguments, add_submit_arguments
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-
-
-logger = default_logger()
 
 
 def make_qsub_test_script(queue_entry):
@@ -159,30 +149,3 @@ def submit_generate_climos_pbs_jobs(session, number, test_job):
             logger.info('Submitted job: {}'.format(entry.pbs_job_id))
 
     session.commit()
-
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    submit_generate_climos_pbs_jobs(session, args.number, args.test_job)
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Submit file(s) from generate_climos queue '
-                    'to PBS jobs queue')
-    group = add_global_arguments(parser)
-    group.add_argument('--test-job', dest='test_job', action='store_true',
-                       help='Submit a test job that performs no work')
-    add_submit_arguments(parser)
-
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    for k in 'database loglevel number'.split():
-        logger.debug('{}: {}'.format(k, getattr(args, k)))
-
-    main(args)
-    sys.exit()

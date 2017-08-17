@@ -1,6 +1,6 @@
 #!python
 """
-Script to reset the status of a queue entry.
+Reset the status of a queue entry.
 
 Typically this script is used to reset the status to NEW, making the entry
 eligible for submission again.
@@ -11,20 +11,9 @@ Downside: History of reset job is replaced. It will take a more sophisticated
 approach if we wish never to lose past history.
 """
 
-from argparse import ArgumentParser
-import logging
-import sys
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import add_global_arguments, add_reset_arguments
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
 from jobqueueing import gcq_statuses
-
-
-logger = default_logger()
 
 
 def reset_generate_climos_queue_entry(session, input_filepath, status):
@@ -94,26 +83,3 @@ def reset_generate_climos_queue_entry(session, input_filepath, status):
 
     session.commit()
     return 0
-
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    reset_generate_climos_queue_entry(session, args.input_filepath, args.status)
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Reset the status of a queue entry to NEW')
-    add_global_arguments(parser)
-    add_reset_arguments(parser)
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    for k in 'database loglevel'.split():
-        logger.debug('{}: {}'.format(k, getattr(args, k)))
-
-    exit_status = main(args)
-    sys.exit(exit_status)

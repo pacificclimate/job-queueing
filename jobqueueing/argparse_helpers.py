@@ -25,13 +25,13 @@ def walltime(string):
 
 def add_global_arguments(parser):
     group = parser.add_argument_group('Global arguments')
-    GCQ_DATABASE = os.environ.get('GCQ_DATABASE', None)
+    JQ_DATABASE = os.environ.get('JQ_DATABASE', None)
     group.add_argument(
         '-d', '--database',
-        required=not bool(GCQ_DATABASE),
-        default=GCQ_DATABASE,
+        required=not bool(JQ_DATABASE),
+        default=JQ_DATABASE,
         help='Filepath to queue management database.'
-             'Defaults to value of environment variable GCQ_DATABASE. '
+             'Defaults to value of environment variable JQ_DATABASE. '
              'You must either define the env var or set the value of this '
              'option in the command line.',
     )
@@ -52,13 +52,13 @@ def add_gcadd_arguments(parser):
 
 def add_execution_environment_arguments(parser, required=True):
     group = parser.add_argument_group('Execution environment arguments')
-    GCQ_PY_VENV = os.environ.get('GCQ_PY_VENV', None)
+    JQ_PY_VENV = os.environ.get('JQ_PY_VENV', None)
     group.add_argument(
         '-P', '--py-venv', dest='py_venv',
-        required=required and not bool(GCQ_PY_VENV),
-        default=GCQ_PY_VENV,
+        required=required and not bool(JQ_PY_VENV),
+        default=JQ_PY_VENV,
         help='Path to Python virtual env containing scripts. ' +
-             ('Defaults to value of environment variable GCQ_PY_VENV. '
+             ('Defaults to value of environment variable JQ_PY_VENV. '
              'You must either define the env var or set the value of this '
              'option in the command line.' if required else '')
     )
@@ -106,6 +106,9 @@ def add_submit_arguments(parser):
     group.add_argument(
         '-n', '--number', type=int, dest='number', default=1,
         help='Number of files to submit')
+    group.add_argument(
+        '--test-job', dest='test_job', action='store_true',
+        help='Submit a test job that performs no work')
     return group
 
 

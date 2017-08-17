@@ -1,23 +1,11 @@
-#!python
 """
-Script to list entries in the `generate_climos` queue.
+List entries in the `generate_climos` queue.
 """
 
-from argparse import ArgumentParser
-import logging
-import sys
 import os.path
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import \
-    add_global_arguments, add_listing_arguments
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-
-
-logger = default_logger()
 
 
 def list_entries(
@@ -100,26 +88,3 @@ def list_entries(
                   " | {e[completed_time]!s:<16.16}"
                   .format(e={key: value if value else '--'
                            for key, value in e.items()}))
-
-
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    list_entries(session,
-                 **{key: getattr(args, key, None)
-                    for key in 'input_filepath pbs_job_id status full'.split()})
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(description='List entries in generate_climos queue')
-    add_global_arguments(parser)
-    add_listing_arguments(parser)
-
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    main(args)
-    sys.exit()

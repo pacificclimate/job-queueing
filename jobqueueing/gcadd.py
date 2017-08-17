@@ -1,6 +1,7 @@
 #!python
+
 """
-Script to add an entry to a `generate_climos` queue, which is to say to add a
+Add an entry to a `generate_climos` queue, which is to say, add a
 record to a `GenerateClimosQueueEntry` in a database.
 
 Such a record denotes a file queued for processing with `generate_climos`
@@ -21,24 +22,10 @@ if there is no entry with the same input filepath. This can be overridden
 with the `-f --force` option.
 """
 
-from argparse import ArgumentParser
-import logging
 import datetime
-import sys
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from jobqueueing.script_helpers import default_logger
-from jobqueueing.argparse_helpers import \
-    add_global_arguments, add_gcadd_arguments, \
-    add_execution_environment_arguments, \
-    add_generate_climos_arguments, add_pbs_arguments, add_ext_submit_arguments
-
+from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-
-
-logger = default_logger()
 
 
 def add_to_generate_climos_queue(
@@ -115,59 +102,3 @@ def add_to_generate_climos_queue(
 
     session.add(GenerateClimosQueueEntry(**entry_args))
     session.commit()
-
-
-def main(args):
-    dsn = 'sqlite+pysqlite:///{}'.format(args.database)
-    engine = create_engine(dsn)
-    session = sessionmaker(bind=engine)()
-
-    add_to_generate_climos_queue(
-        session,
-        **{key: getattr(args, key)
-           for key in '''
-            input_filepath
-            py_venv
-            output_directory
-            convert_longitudes
-            split_vars
-            split_intervals
-            ppn
-            walltime
-            submitted
-            pbs_job_id
-            force
-            '''.split()}
-    )
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Queue a file for processing with generate_climos')
-    add_global_arguments(parser)
-    add_gcadd_arguments(parser)
-    add_execution_environment_arguments(parser)
-    add_generate_climos_arguments(parser)
-    add_pbs_arguments(parser)
-    add_ext_submit_arguments(parser)
-
-    args = parser.parse_args()
-    logger.setLevel(getattr(logging, args.loglevel))
-
-    for k in '''
-            database
-            loglevel
-            input_filepath
-            py_venv
-            output_directory
-            convert_longitudes
-            split_vars
-            split_intervals
-            ppn
-            walltime
-            submitted
-            '''.split():
-        logger.debug('{}: {}'.format(k, getattr(args, k)))
-
-    main(args)
-    sys.exit()
