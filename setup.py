@@ -10,6 +10,7 @@ setup(
     author='Rod Glover',
     author_email='rglover@uvic.ca',
     url='https://github.com/pacificclimate/jobqueueing',
+    packages=['jobqueueing'],
     keywords='PBS job queue',
     zip_safe=True,
     install_requires='''
