@@ -30,5 +30,5 @@ def test_make_qsub_script(make_script):
     assert 'source /path/to/venv/bin/activate' in script
     assert 'cp /input/directory/file.nc' in script
     assert 'infile=$indir/file.nc' in script
-    assert 'generate_climos.py -g False -v True -i True -o $outdir $infile' in script
+    assert 'generate_climos -g False -v True -i True -o $outdir $infile' in script
     assert 'rsync -r $baseoutdir /output/directory' in script
