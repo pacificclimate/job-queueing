@@ -22,7 +22,24 @@ function as a record-keeping service.
 Installation
 ============
 
-First, clone the project repository from github::
+Easy
+----
+
+Create and activate a Python virtual environment::
+
+    $ python3 -m venv venv
+    $ venv/bin/activate
+    (venv) $ pip install --upgrade pip
+
+Install JQ from our pypi::
+
+    (venv) $ pip install -i https://pypi.pacificclimate.org/simple/ jobqueueing
+
+
+Geeky
+-----
+
+Clone the project repository from github::
 
     $ git clone git@github.com:pacificclimate/jobqueueing.git
 
@@ -33,6 +50,9 @@ As usual, it is best to install JQ in a Python virtual environment::
     $ venv/bin/activate
     (venv) $ pip install --upgrade pip
     (venv) $ pip install .
+
+Verify
+------
 
 This installs the ``jq`` (not ``jq.py``) command-line script. Verify installation by running::
 
@@ -102,46 +122,109 @@ JQ workflow
 This section describes the workflow for JQ. It describes the various states defined for JQ entries, and
 the actions that cause transitions from one state to another. The general format is
 
-<JQ STATE>
+``<JQ STATE>``
     description
 
-    *Action*: Something that causes transition to --> <JQ STATE>
+    *Action*: Something that causes transition to
+        --> ``<NEXT JQ STATE>``
 
-The JQ workflow is:
+**The JQ workflow is**:
 
 [no queue entry]
     *Action*: Add to queue (``jq add``)
-        --> new JQ entry with status NEW
+        --> new JQ entry with status ``NEW``
 
-NEW
+``NEW``
     Job exists in JQ but has not been submitted to PBS.
 
     *Action*: Submit (``jq submit``)
-        --> SUBMITTED
+        --> ``SUBMITTED``
 
-SUBMITTED
+``SUBMITTED``
     Job has been submitted to PBS. Actual state of PBS job is unknown.
     The JQ state can be updated to reflect the PBS state by manual actions, see below.
 
     Now there is also a PBS status for the job, but it is not updated dynamically in JQ.
 
     *Action*: Update status while PBS job is running (``jq update-email`` or ``jq update-qstat``)
-        --> RUNNING
+        --> ``RUNNING``
     *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
-        --> SUCCESS
+        --> ``SUCCESS``
     *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
-        --> ERROR
+        --> ``ERROR``
 
-RUNNING
+``RUNNING``
     Job has been submitted to PBS, and PBS job is known to be running.
 
     *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
-        --> SUCCESS
+        --> ``SUCCESS``
     *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
-        --> ERROR
+        --> ``ERROR``
 
-SUCCESS
+``SUCCESS``
     Job has been submitted to PBS, and  PBS job completed normally.
 
-ERROR
+``ERROR``
     Job has been submitted to PBS, and PBS job errored.
+
+``jq submit`` and the work script
+=================================
+
+Most of JQ is just scaffolding for what ``jq submit`` does, which is to submit a script
+that causes the real work (generating climatological means) to be done on a compute node.
+
+TL;DR
+-----
+
+Here's where the data ends up:
+
+* logs: ``<output dir>/logs/``
+* output files: ``<output dir>/<pbs job num>/``
+* temporary input files: ``$TMPDIR/climo/input``
+* temporary output files: ``$TMPDIR/climo/output/$pbs_job_num``
+
+Details
+-------
+
+The script submitted does the following things:
+
+#. Set PBS options based on queue entry values:
+
+   * processes per node (``ppn``)
+   * virtual memory allocation (automatically computed from ppn)
+   * walltime
+   * ``stdout`` and ``stderr`` logs directed to ``logs/`` subdirectory of specified output directory
+   * email notification
+   * name ``generate_climos:<input filename>``
+
+#. Set up the execution environment.
+
+   * Load modules ``netcdf-bin``, ``cdo-bin``.
+   * Activate the Python virtual environment specified for this queue entry.
+
+#. Copy the input NetCDF file to ``$TMPDIR/climo/input``.
+
+#. Set up the output directory structure in ``$TMPDIR``.
+
+   * Base output directory for all outputs from this type of job is ``$TMPDIR/climo/output``.
+   * Files containing climatological means generated in this particular PBS job are placed in
+     ``$TMPDIR/climo/output/$pbs_job_num``, where
+     ``pbs_job_num`` is the job number (e.g., ``1234``) extracted from the PBS job id for this job.
+
+#. Generate climatological means.
+
+   * Invoke ``generate_climos`` with the appropriate options and arguments.
+
+#. Copy result file to final destination and remove temporary input file
+
+   * Use ``rsync`` to update the final destination directory (specified for this queue entry)
+     with the files created in the temporary directory. This causes the job id subdirectories
+     to be replicated in the final destination directory, as well as the output files they contain.
+   * Remove the temporary input file from ``$TMPDIR/climo/input``.
+   * Since the output files are relatively small, we don't remove them from the temporary
+     output directory, so that we have a fallback if something goes wrong with the ``rsync``.
+
+
+
+
+
