@@ -16,6 +16,7 @@ from jobqueueing.argparse_helpers import \
     add_pbs_arguments, \
     add_ext_submit_arguments, \
     add_reset_arguments, \
+    add_script_arguments, \
     add_submit_arguments
 from jobqueueing.script_helpers import logger
 
@@ -25,6 +26,7 @@ from jobqueueing.gcalter_params import updatable_params, \
 from jobqueueing.gclist import list_entries
 from jobqueueing.gcreset import reset_generate_climos_queue_entry
 from jobqueueing.gcsub import submit_generate_climos_pbs_jobs
+from jobqueueing.gcscript import output_generate_climos_script
 from jobqueueing.gcupd_email import \
     update_generate_climos_queue_from_status_email
 from jobqueueing.gcupd_qstat import update
@@ -82,6 +84,11 @@ def list(session, args):
 def reset(session, args):
     return reset_generate_climos_queue_entry(
         session, args.input_filepath, args.status)
+
+
+def script(session, args):
+    return output_generate_climos_script(
+        session, args.input_filepath, args.test_job)
 
 
 def submit(session, args):
@@ -144,6 +151,14 @@ if __name__ == '__main__':
     )
     reset_parser.set_defaults(action=reset)
     add_reset_arguments(reset_parser)
+
+    # script
+    script_parser = subparsers.add_parser(
+        'script',
+        help='Reset the status of a queue entry'
+    )
+    script_parser.set_defaults(action=script)
+    add_script_arguments(script_parser)
 
     # submit
     submit_parser = subparsers.add_parser(

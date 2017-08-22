@@ -101,6 +101,16 @@ def add_pbs_arguments(parser, ppn_default=1, walltime_default='10:00:00'):
     return group
 
 
+def add_script_arguments(parser):
+    group = parser.add_argument_group('Script arguments')
+    group.add_argument(
+        'input_filepath', help='Input filepath (full match)')
+    group.add_argument(
+        '--test-job', dest='test_job', action='store_true',
+        help='Submit a test job that performs no work')
+    return group
+
+
 def add_submit_arguments(parser):
     group = parser.add_argument_group('Submit arguments')
     group.add_argument(
