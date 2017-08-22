@@ -54,7 +54,7 @@ As usual, it is best to install JQ in a Python virtual environment::
 Verify
 ------
 
-This installs the ``jq`` (not ``jq.py``) command-line script. Verify installation by running::
+This installs the ``jq`` command-line script. Verify installation by running::
 
     (venv) $ jq --help
 
@@ -111,6 +111,8 @@ The actions available are, in alphabetical order:
   WARNING: ANY entry that partially matches the input filename is updated.
 - ``list``: List entries in generate_climos queue
 - ``reset``: Reset the status of a queue entry
+- ``script``: Write to stdout the script that will be or was submitted by ``jq submit`` for
+  a specified queue entry.
 - ``submit``: Dequeue one or more generate_climos queue entries with NEW status,
   and submit a PBS job for each, updating the queue entries accordingly.
 - ``update-email``: Update generate_climos queue using PBS status email
@@ -224,7 +226,16 @@ The script submitted does the following things:
    * Since the output files are relatively small, we don't remove them from the temporary
      output directory, so that we have a fallback if something goes wrong with the ``rsync``.
 
+Releasing
+=========
 
+To create a versioned release:
 
+1. Increment ``__version__`` in ``setup.py``
+2. Summarize the changes from the last release in ``NEWS.md``
+3. Commit these changes, then tag the release::
 
-
+    git add setup.py NEWS.md
+    git commit -m"Bump to version x.x.x"
+    git tag -a -m"x.x.x" x.x.x
+    git push --follow-tags
