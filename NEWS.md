@@ -1,5 +1,12 @@
 # News / Release Notes
 
+## 0.2.0
+
+*2017 Aug 22*
+
+* Add ``jq script`` command to output script that would be submitted by ``jq submit``.
+
+
 ## 0.1.0
 
 *2017 Aug 21*
