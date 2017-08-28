@@ -3,6 +3,7 @@ List entries in the `generate_climos` queue.
 """
 
 import os.path
+import re
 
 from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
@@ -10,7 +11,12 @@ from jobqueueing import GenerateClimosQueueEntry
 
 def list_entries(
         session,
-        input_filepath=None, pbs_job_id=None, status=None, full=None
+        input_filepath=None,
+        pbs_job_id=None,
+        status=None,
+        filepath_replace=None,
+        compact=None,
+        full=None
 ):
     """
     List entries in generate_climos queue.
@@ -38,9 +44,26 @@ def list_entries(
         q = q.filter(GenerateClimosQueueEntry.status == status)
     entries = q.all()
 
-    if full:
+    print('{} queue entries matched'.format(len(entries)))
+
+    def mapped_filepath(filepath):
+        if filepath_replace is None:
+            return filepath
+        return re.sub(filepath_replace[0], filepath_replace[1], filepath)
+
+    if compact:
         for entry in entries:
-            print('{}:'.format(entry.input_filepath))
+            print(
+                '{}: {} ({!s:4.4})'.format(
+                    mapped_filepath(entry.input_filepath),
+                    entry.status,
+                    entry.pbs_job_id or ''
+                ),
+            )
+
+    elif full:
+        for entry in entries:
+            print('{}:'.format(mapped_filepath(entry.input_filepath)))
             for attr in '''
                     py_venv
                     output_directory
@@ -58,6 +81,7 @@ def list_entries(
                     completion_message
                     '''.split():
                 print('    {} = {}'.format(attr, getattr(entry, attr)))
+
     else:
         title_fmt = ('  {:<16.16}'
                      ' | {:<9.9}'
@@ -71,7 +95,8 @@ def list_entries(
         ))
         print(title_fmt.format(*(('-'*100,) * 20)))
         for entry in entries:
-            print('{}:'.format(os.path.basename(entry.input_filepath)))
+            # print('{}:'.format(os.path.basename(entry.input_filepath)))
+            print('{}:'.format(mapped_filepath(entry.input_filepath)))
             e = {name: getattr(entry, name)
                  for name in ('added_time',
                               'status',

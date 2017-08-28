@@ -135,9 +135,17 @@ def add_ext_submit_arguments(parser):
 
 def add_listing_arguments(parser):
     group = parser.add_argument_group('Listing control arguments')
-    group.add_argument(
-        '-f', '--full', action='store_true',
+    mutex_group = parser.add_mutually_exclusive_group()
+    mutex_group.add_argument(
+        '-C', '--compact', action='store_true',
+        help='Display compact listing')
+    mutex_group.add_argument(
+        '-F', '--full', action='store_true',
         help='Display full listing')
+    group.add_argument(
+        '-f', '--filepath-replace', dest='filepath_replace', nargs=2,
+        help='Search/replace filepath string for more readable listing'
+    )
     group.add_argument(
         '-i', '--input-filepath', dest='input_filepath',
         help='Input filepath (partial match)')
