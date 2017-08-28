@@ -77,7 +77,14 @@ def alter_params(session, args):
 def list(session, args):
     return list_entries(
         session,
-         **args_dict(args, 'input_filepath pbs_job_id status full'.split())
+         **args_dict(args,
+                     '''
+                     input_filepath
+                     pbs_job_id
+                     status
+                     filepath_replace
+                     compact
+                     full'''.split())
     )
 
 
