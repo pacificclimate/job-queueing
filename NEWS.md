@@ -1,5 +1,14 @@
 # News / Release Notes
 
+## 0.2.1
+
+*2017 Aug 28*
+
+* Improvements to ``jq list``:
+  * Add arg --compact arg: 1 line per queue entry.
+  * Add arg --filepath-replace: Filepath replacement via regex to enable arbitrary rewriting of filepaths for 
+    easier viewing/analysis.
+
 ## 0.2.0
 
 *2017 Aug 22*
