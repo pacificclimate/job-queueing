@@ -166,3 +166,13 @@ def add_reset_arguments(parser):
         '-s', '--status', help='Status of queue entry',
         choices=gcq_statuses, default='NEW')
     return group
+
+
+def add_summarize_arguments(parser):
+    group = parser.add_argument_group('Summary arguments')
+    group.add_argument(
+        '-i', '--input-filepath', dest='input_filepath',
+        help='Input filepath (partial match)')
+    return group
+
+
