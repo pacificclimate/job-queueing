@@ -1,5 +1,11 @@
 # News / Release Notes
 
+## 0.2.2
+
+*2017 Aug 29*
+
+* Add ``jq summarize`` command: Output summary by status of queue entries.
+
 ## 0.2.1
 
 *2017 Aug 28*
