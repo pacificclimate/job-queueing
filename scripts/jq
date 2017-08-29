@@ -87,7 +87,6 @@ def list(session, args):
                      filepath_replace
                      compact
                      full
-                     summarize
                      '''.split())
     )
 
