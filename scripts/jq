@@ -17,6 +17,7 @@ from jobqueueing.argparse_helpers import \
     add_ext_submit_arguments, \
     add_reset_arguments, \
     add_script_arguments, \
+    add_summarize_arguments, \
     add_submit_arguments
 from jobqueueing.script_helpers import logger
 
@@ -27,6 +28,7 @@ from jobqueueing.gclist import list_entries
 from jobqueueing.gcreset import reset_generate_climos_queue_entry
 from jobqueueing.gcsub import submit_generate_climos_pbs_jobs
 from jobqueueing.gcscript import output_generate_climos_script
+from jobqueueing.gcsummarize import summarize_entries
 from jobqueueing.gcupd_email import \
     update_generate_climos_queue_from_status_email
 from jobqueueing.gcupd_qstat import update
@@ -84,7 +86,9 @@ def list(session, args):
                      status
                      filepath_replace
                      compact
-                     full'''.split())
+                     full
+                     summarize
+                     '''.split())
     )
 
 
@@ -100,6 +104,10 @@ def script(session, args):
 
 def submit(session, args):
     return submit_generate_climos_pbs_jobs(session, args.number, args.test_job)
+
+
+def summarize(session, args):
+    return summarize_entries(session, args.input_filepath)
 
 
 def update_from_email(session, args):
@@ -162,7 +170,7 @@ if __name__ == '__main__':
     # script
     script_parser = subparsers.add_parser(
         'script',
-        help='Reset the status of a queue entry'
+        help='Output the compute script corresponding to this entry'
     )
     script_parser.set_defaults(action=script)
     add_script_arguments(script_parser)
@@ -176,6 +184,14 @@ if __name__ == '__main__':
     )
     submit_parser.set_defaults(action=submit)
     add_submit_arguments(submit_parser)
+
+    # summarize
+    summarize_parser = subparsers.add_parser(
+        'summarize',
+        help='Summarize entries in generate_climos queue'
+    )
+    summarize_parser.set_defaults(action=summarize)
+    add_summarize_arguments(summarize_parser)
 
     # update-email
     update_email_parser = subparsers.add_parser(
