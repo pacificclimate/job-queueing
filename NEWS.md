@@ -1,5 +1,11 @@
 # News / Release Notes
 
+## 0.2.3
+
+*2017 Aug 29*
+
+* Fix error introduced into ``jq list``
+
 ## 0.2.2
 
 *2017 Aug 29*
