@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base(metadata=MetaData())
 metadata = Base.metadata
 
-gcq_statuses = ['NEW', 'SUBMITTED', 'RUNNING', 'SUCCESS', 'ERROR']
+gcq_statuses = ['NEW', 'HOLD', 'SUBMITTED', 'RUNNING', 'SUCCESS', 'ERROR']
 
 
 class GenerateClimosQueueEntry(Base):
