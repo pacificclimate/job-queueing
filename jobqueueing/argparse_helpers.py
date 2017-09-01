@@ -168,6 +168,13 @@ def add_reset_arguments(parser):
     return group
 
 
+def add_hold_arguments(parser):
+    group = parser.add_argument_group('Hold/unhold arguments')
+    group.add_argument(
+        'input_filepath', help='Input filepath (partial match)')
+    return group
+
+
 def add_summarize_arguments(parser):
     group = parser.add_argument_group('Summary arguments')
     group.add_argument(

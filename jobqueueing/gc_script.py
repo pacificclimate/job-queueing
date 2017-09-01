@@ -5,7 +5,7 @@ a specified queue entry.
 """
 
 from . import GenerateClimosQueueEntry
-from .gcsub import make_qsub_script, make_qsub_test_script
+from .gc_submit import make_qsub_script, make_qsub_test_script
 
 
 def output_generate_climos_script(session, input_filepath, test_job):

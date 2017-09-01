@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from jobqueueing.argparse_helpers import \
     add_global_arguments, \
     add_listing_arguments, \
+    add_hold_arguments, \
     add_gcadd_arguments, \
     add_execution_environment_arguments, \
     add_generate_climos_arguments, \
@@ -21,17 +22,18 @@ from jobqueueing.argparse_helpers import \
     add_submit_arguments
 from jobqueueing.script_helpers import logger
 
-from jobqueueing.gcadd import add_to_generate_climos_queue
-from jobqueueing.gcalter_params import updatable_params, \
+from jobqueueing.gc_add import add_to_generate_climos_queue
+from jobqueueing.gc_alter_params import updatable_params, \
     update_generate_climos_queue_entries_with_params
-from jobqueueing.gclist import list_entries
-from jobqueueing.gcreset import reset_generate_climos_queue_entry
-from jobqueueing.gcsub import submit_generate_climos_pbs_jobs
-from jobqueueing.gcscript import output_generate_climos_script
-from jobqueueing.gcsummarize import summarize_entries
-from jobqueueing.gcupd_email import \
+from jobqueueing.gc_hold import hold_gc_entry, unhold_gc_entry
+from jobqueueing.gc_list import list_entries
+from jobqueueing.gc_reset import reset_generate_climos_queue_entry
+from jobqueueing.gc_submit import submit_generate_climos_pbs_jobs
+from jobqueueing.gc_script import output_generate_climos_script
+from jobqueueing.gc_summarize import summarize_entries
+from jobqueueing.gc_update_email import \
     update_generate_climos_queue_from_status_email
-from jobqueueing.gcupd_qstat import update
+from jobqueueing.gc_update_qstat import update
 
 
 def create_session(database):
@@ -74,6 +76,14 @@ def alter_params(session, args):
         args.input_filepath,
         **args_dict(args, updatable_params)
     )
+
+
+def hold(session, args):
+    return hold_gc_entry(session, args.input_filepath)
+
+
+def unhold(session, args):
+    return unhold_gc_entry(session, args.input_filepath)
 
 
 def list(session, args):
@@ -149,6 +159,22 @@ if __name__ == '__main__':
     add_execution_environment_arguments(alter_params_parser, required=False)
     add_pbs_arguments(alter_params_parser, ppn_default=None, walltime_default=None)
     add_generate_climos_arguments(alter_params_parser, o_required=False, flag_default=None)
+
+    # hold
+    hold_parser = subparsers.add_parser(
+        'hold',
+        help='Set entries in generate_climos queue from NEW to HOLD status'
+    )
+    hold_parser.set_defaults(action=hold)
+    add_hold_arguments(hold_parser)
+
+    # unhold
+    unhold_parser = subparsers.add_parser(
+        'unhold',
+        help='Reset entries in generate_climos queue from HOLD to NEW status'
+    )
+    unhold_parser.set_defaults(action=unhold)
+    add_hold_arguments(unhold_parser)
 
     # list
     list_parser = subparsers.add_parser(
