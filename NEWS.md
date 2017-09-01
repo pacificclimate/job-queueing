@@ -1,5 +1,12 @@
 # News / Release Notes
 
+## 0.2.5
+
+*2017 Sep 01*
+
+* Fix bugs and improve functionality of ``jq reset``. Now does partial match on filepath
+  and interactively confirms reset of each matching file.
+
 ## 0.2.4
 
 *2017 Sep 01*
