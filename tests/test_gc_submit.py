@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from jobqueueing import GenerateClimosQueueEntry
-from jobqueueing.gcsub import make_qsub_script, make_qsub_test_script
+from jobqueueing.gc_submit import make_qsub_script, make_qsub_test_script
 
 
 @pytest.mark.parametrize('make_script', [make_qsub_script, make_qsub_test_script])
