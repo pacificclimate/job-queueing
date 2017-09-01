@@ -1,5 +1,11 @@
 # News / Release Notes
 
+## 0.2.4
+
+*2017 Sep 01*
+
+* Add status HOLD and ``jq hold`` and ``jq unhold`` commands.
+
 ## 0.2.3
 
 *2017 Aug 29*
