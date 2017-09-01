@@ -13,33 +13,36 @@ approach if we wish never to lose past history.
 
 from jobqueueing.script_helpers import logger
 from jobqueueing import GenerateClimosQueueEntry
-from jobqueueing import gcq_statuses
 
 
-def reset_generate_climos_queue_entry(session, input_filepath, status):
+def reset_generate_climos_queue_entry(session, input_filepath, target_status):
     """Reset a climo queue entry status to `status`
 
     :param input_filepath (str): filepath of entry to be reset
-    :param status (str): status to reset entry to (must be one of valid
+    :param target_status (str): status to reset entry to (must be one of valid
         status values)
     """
-    entry = session.query(GenerateClimosQueueEntry)\
-        .filter(GenerateClimosQueueEntry.input_filepath == input_filepath)\
-        .first()
+    q = (
+        session.query(GenerateClimosQueueEntry)
+            .filter(GenerateClimosQueueEntry.input_filepath
+                    .like('%{}%'.format(input_filepath)))
+    )
+    entries = q.all()
 
-    if not entry:
-        logger.error(
-            'Could not find generate_climos queue entry matching input file {}.'
-            ' Skipping.'
-            .format(input_filepath))
-        return 1
+    # Transitions from current status to process previous status
+    previous_status = {
+        'SUCCESS': 'RUNNING',
+        'ERROR': 'RUNNING',
+        'RUNNING': 'SUBMITTED',
+        'SUBMITTED': 'NEW',
+        'HOLD': 'NEW',
+    }
 
     def single_step_to(status, entry):
         """Single-step reset to `status` from next later status."""
-        logger.debug('Stepping from status {} to {}'
-                     .format(entry.status, status))
+        logger.debug('{} -> {}'.format(entry.status, status))
         if status == 'NEW':
-            assert entry.status == 'SUBMITTED'
+            assert entry.status in {'SUBMITTED', 'HOLD'}
             entry.status = 'NEW'
             entry.submitted_time = None
             entry.pbs_job_id = None
@@ -58,28 +61,40 @@ def reset_generate_climos_queue_entry(session, input_filepath, status):
         else:
             raise ValueError
 
-    rev_statuses = list(reversed(gcq_statuses))
-    from_i = rev_statuses.index(entry.status)
-    to_i = rev_statuses.index(status)
-    if to_i <= from_i:
-        logger.error('Cannot reset status from {} to {}'
-                     .format(entry.status, status))
-        return 1
-    # Iterate through statuses in reverse order from predecessor of 
-    # `entry.status` to `status`.
-    # Example: for an entry in SUCCESS status, iterate from RUNNING to NEW.
-    for i, status in enumerate(rev_statuses):
-        if from_i < i <= to_i:
+    def step_to(target_status, entry):
+        # Check validity of proposed reset.
+        # Note: This will fail on valid resets if ``previous_status`` is incorrectly
+        # defined. Just sayin'.
+        status = entry.status
+        while status != target_status:
             try:
+                status = previous_status[status]
+            except KeyError:
+                logger.error('Cannot reset status from {} to {}'
+                             .format(entry.status, target_status))
+                return
+
+        # Perform the transitions from current status to target status.
+        status = entry.status
+        while status != target_status:
+            try:
+                status = previous_status[status]
                 single_step_to(status, entry)
             except ValueError:
-                logger.error('Cannot reset status from {} to {}'
+                logger.error('Cannot step from status {} to {}'
                              .format(entry.status, status))
-                return 1
             except AssertionError:
                 logger.error('Cannot step from status {} to {}'
                              .format(entry.status, status))
-                return 1
+
+    for entry in entries:
+        response = 'x'
+        while response not in ['', 'y', 'n']:
+            response = (
+                input('{}\nreset? (Y/n) '.format(entry.input_filepath))
+                    .strip().lower())
+            if response in ['', 'y']:
+                step_to(target_status, entry)
 
     session.commit()
     return 0
