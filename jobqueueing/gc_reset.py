@@ -22,16 +22,21 @@ def reset_generate_climos_queue_entry(session, input_filepath, target_status):
     :param target_status (str): status to reset entry to (must be one of valid
         status values)
     """
-    entry = session.query(GenerateClimosQueueEntry)\
-        .filter(GenerateClimosQueueEntry.input_filepath == input_filepath)\
-        .first()
+    q = (
+        session.query(GenerateClimosQueueEntry)
+            .filter(GenerateClimosQueueEntry.input_filepath
+                    .like('%{}%'.format(input_filepath)))
+    )
+    entries = q.all()
 
-    if not entry:
-        logger.error(
-            'Could not find generate_climos queue entry matching input file {}.'
-            ' Skipping.'
-            .format(input_filepath))
-        return 1
+    # Transitions from current status to process previous status
+    previous_status = {
+        'SUCCESS': 'RUNNING',
+        'ERROR': 'RUNNING',
+        'RUNNING': 'SUBMITTED',
+        'SUBMITTED': 'NEW',
+        'HOLD': 'NEW',
+    }
 
     def single_step_to(status, entry):
         """Single-step reset to `status` from next later status."""
@@ -56,41 +61,40 @@ def reset_generate_climos_queue_entry(session, input_filepath, target_status):
         else:
             raise ValueError
 
-    # Transitions from current status to process previous status
-    previous_status = {
-        'SUCCESS': 'RUNNING',
-        'ERROR': 'RUNNING',
-        'RUNNING': 'SUBMITTED',
-        'SUBMITTED': 'NEW',
-        'HOLD': 'NEW',
-    }
+    def step_to(target_status, entry):
+        # Check validity of proposed reset.
+        # Note: This will fail on valid resets if ``previous_status`` is incorrectly
+        # defined. Just sayin'.
+        status = entry.status
+        while status != target_status:
+            try:
+                status = previous_status[status]
+            except KeyError:
+                logger.error('Cannot reset status from {} to {}'
+                             .format(entry.status, target_status))
+                return
 
-    # Check validity of proposed reset.
-    # Note: This will fail on valid resets if ``previous_status`` is incorrectly
-    # defined. Just sayin'.
-    status = entry.status
-    while status != target_status:
-        try:
-            status = previous_status[status]
-        except KeyError:
-            logger.error('Cannot reset status from {} to {}'
-                         .format(entry.status, target_status))
-            return 1
+        # Perform the transitions from current status to target status.
+        status = entry.status
+        while status != target_status:
+            try:
+                status = previous_status[status]
+                single_step_to(status, entry)
+            except ValueError:
+                logger.error('Cannot step from status {} to {}'
+                             .format(entry.status, status))
+            except AssertionError:
+                logger.error('Cannot step from status {} to {}'
+                             .format(entry.status, status))
 
-    # Perform the transitions from current status to target status.
-    status = entry.status
-    while status != target_status:
-        try:
-            status = previous_status[status]
-            single_step_to(status, entry)
-        except ValueError:
-            logger.error('Cannot step from status {} to {}'
-                         .format(entry.status, status))
-            return 1
-        except AssertionError:
-            logger.error('Cannot step from status {} to {}'
-                         .format(entry.status, status))
-            return 1
-    
+    for entry in entries:
+        response = 'x'
+        while response not in ['', 'y', 'n']:
+            response = (
+                input('{}\nreset? (Y/n) '.format(entry.input_filepath))
+                    .strip().lower())
+            if response in ['', 'y']:
+                step_to(target_status, entry)
+
     session.commit()
     return 0

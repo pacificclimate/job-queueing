@@ -161,10 +161,11 @@ def add_listing_arguments(parser):
 def add_reset_arguments(parser):
     group = parser.add_argument_group('Reset arguments')
     group.add_argument(
-        'input_filepath', help='Input filepath (full match)')
+        'input_filepath', help='Input filepath (partial match)')
     group.add_argument(
         '-s', '--status', help='Status of queue entry',
-        choices=gcq_statuses, default='NEW')
+        choices='RUNNING SUBMITTED NEW'.split(),
+        default='NEW')
     return group
 
 
