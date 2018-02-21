@@ -36,6 +36,10 @@ module list
 source {qe.py_venv}/bin/activate
 which python
 
+# The cdo python module executes Popen w/ shell=False
+# and in effect completely ignores the $PATH variable
+export CDO=$(which cdo)
+
 # Copy NetCDF file to $TMPDIR/climo/input
 indir=$TMPDIR/climo/input
 echo mkdir -p $indir && cp {qe.input_filepath} $indir
@@ -81,6 +85,10 @@ module load cdo-bin
 module list
 source {qe.py_venv}/bin/activate
 which python
+
+# The cdo python module executes Popen w/ shell=False
+# and in effect completely ignores the $PATH variable
+export CDO=$(which cdo)
 
 # Copy NetCDF file to $TMPDIR/climo/input
 indir=$TMPDIR/climo/input
