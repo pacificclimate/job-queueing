@@ -31,8 +31,6 @@ from jobqueueing.gc_reset import reset_generate_climos_queue_entry
 from jobqueueing.gc_submit import submit_generate_climos_pbs_jobs
 from jobqueueing.gc_script import output_generate_climos_script
 from jobqueueing.gc_summarize import summarize_entries
-from jobqueueing.gc_update_email import \
-    update_generate_climos_queue_from_status_email
 from jobqueueing.gc_update_qstat import update
 
 
@@ -217,13 +215,6 @@ if __name__ == '__main__':
     )
     summarize_parser.set_defaults(action=summarize)
     add_summarize_arguments(summarize_parser)
-
-    # update-email
-    update_email_parser = subparsers.add_parser(
-        'update-email',
-        help='Update generate_climos queue using PBS status email'
-    )
-    update_email_parser.set_defaults(action=update_from_email)
 
     # update-qstat
     update_qstat_parser = subparsers.add_parser(

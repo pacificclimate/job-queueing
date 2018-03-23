@@ -68,22 +68,34 @@ There's little to configure in JQ, just a couple of environment variables and th
   The location of these databases may change in future (but will remain on gluster).
 
   - ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-prod.sqlite``
+  - ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-climdex.sqlite``
   - ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-test.sqlite``
 
   The test database (``jobqueue-test.sqlite``) is exclusively for testing JQ, and should not be used for
   normal operations.
 
-- ``JQ_PY_VENV``: The Python virtual environment in which to run *the script submitted to PBS*.
-  (This is *not* the same as the virtual environment you are running JQ from!)
+- ``JQ_PY_VENV``: The Python virtual environment in which to run *the script
+  submitted to PBS*.
 
-  There is a predefined environment suitable for JQ jobs at
-  ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv``
-  which should be used in most cases.
+  This variable, if set, determines the default value for the
+  ``jq add`` option ``-P`` / ``--py-venv``.
+
+  (This is *not necessarily* the same as the virtual environment you are running
+  JQ from!
+  You *can* run JQ from the predefined environments below, because
+  for convenience they have JQ installed as well as ``generate_climos``.)
+
+There are a predefined environments suitable for JQ jobs at
+
+- ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv``
+- ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv_climdex``
+
+which should be used in most cases.
 
 In short, your JQ configuration should normally be::
 
-    $ export JQ_DATABASE=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/jobqueue-prod.sqlite
-    $ export JQ_PY_VENV=/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv
+    $ export JQ_DATABASE=/storage/data/projects/comp_support/climate_explorer_data_prep/climatological_means/jobqueue-prod.sqlite
+    $ export JQ_PY_VENV=/storage/data/projects/comp_support/climate_explorer_data_prep/climatological_means/venv
 
 Usage
 =====
@@ -105,21 +117,71 @@ Actions overview
 
 The actions available are, in alphabetical order:
 
-- ``add``: Add a file to the queue for processing with generate_climos
-- ``alter-params``: Update entries with generate_climos params and PBS params (but not status). 
-  Updated entry must be in status NEW. 
-  WARNING: ANY entry that partially matches the input filename is updated.
-- ``list``: List entries in generate_climos queue
-- ``reset``: Reset the status of a queue entry
-- ``script``: Write to stdout the script that will be or was submitted by ``jq submit`` for
-  a specified queue entry.
-- ``submit``: Dequeue one or more generate_climos queue entries with NEW status,
-  and submit a PBS job for each, updating the queue entries accordingly.
-- ``update-email``: Update generate_climos queue using PBS status email
-- ``update-qstat``: Update generate_climos queue using PBS qstat
+=================== ============================================
+Action              Effect
+=================== ============================================
+``add``             Add a file to the queue for processing with ``generate_climos``
+
+``alter-params``    Update entries with generate_climos params and PBS params (but not status).
+                    Updated entry must be in status NEW.
+
+                    WARNING: ANY entry that partially matches the input filename is updated.
+
+``hold``            Set entries in ``generate_climos`` queue from NEW to HOLD status
+
+``unhold``          Set entries in ``generate_climos`` queue from HOLD to NEW status
+
+``list``            List entries in ``generate_climos`` queue
+
+``reset``           Reset the status of a queue entry
+
+``script``          Write to stdout the script that will be or was submitted by ``jq submit`` for
+                    a specified queue entry.
+
+``submit``          Dequeue one or more ``generate_climos`` queue entries with NEW status,
+                    and submit a PBS job for each, updating the queue entries accordingly.
+
+``summarize``       Summarize entries in ``generate_climos`` queue (generate statistics)
+
+``update-qstat``    Update ``generate_climos`` queue using PBS qstat
+=================== ============================================
+
 
 JQ workflow
 ===========
+
+States
+------
+
+A JQ job is always in one of the following states (see "States and actions"
+for details):
+
+- ``NEW``
+- ``HOLD``
+- ``SUBMITTED``
+- ``RUNNING``
+- ``SUCCESS``
+- ``ERROR``
+
+
+Happy path workflow
+-------------------
+
+The typical, no-errors workflow is as follows:
+
+=================== ======================= =================
+State               Action                  Note
+=================== ======================= =================
+*no queue entry*      ``jq add``
+``NEW``             ``jq submit``
+``SUBMITTED``       ``jq update-qstat``
+``RUNNING``         ``jq update-qstat``     This state entered only if update
+                                            done while job actually running
+``SUCCESS``                                 Job completed, data available
+=================== ======================= =================
+
+States and actions
+------------------
 
 This section describes the workflow for JQ. It describes the various states defined for JQ entries, and
 the actions that cause transitions from one state to another. The general format is
@@ -127,20 +189,36 @@ the actions that cause transitions from one state to another. The general format
 ``<JQ STATE>``
     description
 
-    *Action*: Something that causes transition to
-        --> ``<NEXT JQ STATE>``
+    *Action*: Something that causes transition to another state
+        | ``jq <action>``
+        | --> ``<NEXT JQ STATE>``
 
 **The JQ workflow is**:
 
 [no queue entry]
-    *Action*: Add to queue (``jq add``)
-        --> new JQ entry with status ``NEW``
+    *Action*: Add to queue
+        | ``jq add``
+        | --> new JQ entry with status ``NEW``
 
 ``NEW``
     Job exists in JQ but has not been submitted to PBS.
 
-    *Action*: Submit (``jq submit``)
-        --> ``SUBMITTED``
+    *Action*: Submit job to PBS
+        | ``jq submit``
+        | --> ``SUBMITTED``
+    *Action*: Hold job (place in HOLD status) 
+        | ``jq hold``
+        | --> ``HOLD``
+
+``HOLD``
+    Job is not elegible for submission. Use this status to segregate jobs that
+    for some reason you do not want to submit. (Submission is usually bulk
+    and/or non-job-specific, in order of ``jq add`` -ing.)
+
+    *Action*: Unhold (place in NEW status) 
+        | ``jq unhold`` or ``jq reset``
+        | --> ``NEW``
+
 
 ``SUBMITTED``
     Job has been submitted to PBS. Actual state of PBS job is unknown.
@@ -148,32 +226,55 @@ the actions that cause transitions from one state to another. The general format
 
     Now there is also a PBS status for the job, but it is not updated dynamically in JQ.
 
-    *Action*: Update status while PBS job is running (``jq update-email`` or ``jq update-qstat``)
-        --> ``RUNNING``
-    *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
-        --> ``SUCCESS``
-    *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
-        --> ``ERROR``
+    *Action*: Update status while PBS job is running 
+        | ``jq update-qstat``
+        | --> ``RUNNING``
+    *Action*: Update status after PBS job has terminated with success 
+        | ``jq update-qstat``
+        | --> ``SUCCESS``
+    *Action*: Update status after PBS job has terminated with error 
+        | ``jq update-qstat``
+        | --> ``ERROR``
+    *Action*: Reset (place job in NEW status).
+        | Note: This makes the job elegible for submission again, but it
+          removes any information about past submits.
+        | ``jq reset``
+        | --> ``NEW``
 
 ``RUNNING``
     Job has been submitted to PBS, and PBS job is known to be running.
 
-    *Action*: Update status after PBS job has terminated with success (``jq update-email`` or ``jq update-qstat``)
-        --> ``SUCCESS``
-    *Action*: Update status after PBS job has terminated with error (``jq update-email`` or ``jq update-qstat``)
-        --> ``ERROR``
+    *Action*: Update status after PBS job has terminated with success 
+        | ``jq update-qstat``
+        | --> ``SUCCESS``
+    *Action*: Update status after PBS job has terminated with error 
+        | ``jq update-qstat``
+        | --> ``ERROR``
 
 ``SUCCESS``
     Job has been submitted to PBS, and  PBS job completed normally.
 
+    *Action*: Reset (place job in NEW status).
+        | Note: This makes the job elegible for submission again, but it
+          removes any information about past submits.
+        | ``jq reset``
+        | --> ``NEW``
+
 ``ERROR``
     Job has been submitted to PBS, and PBS job errored.
+
+    *Action*: Reset (place job in NEW status).
+        | Note: This makes the job elegible for submission again, but it
+          removes any information about past submits.
+        | ``jq reset``
+        | --> ``NEW``
 
 ``jq submit`` and the work script
 =================================
 
-Most of JQ is just scaffolding for what ``jq submit`` does, which is to submit a script
-that causes the real work (generating climatological means) to be done on a compute node.
+Most of JQ is just scaffolding to support what ``jq submit`` does,
+which is to submit a script that causes the real work (generating
+climatological means) to be done on a compute node.
 
 TL;DR
 -----
@@ -183,7 +284,7 @@ Here's where the data ends up:
 * logs: ``<output dir>/logs/``
 * output files: ``<output dir>/<pbs job num>/``
 * temporary input files: ``$TMPDIR/climo/input``
-* temporary output files: ``$TMPDIR/climo/output/$pbs_job_num``
+* temporary output files: ``$TMPDIR/climo/output/<pbs job num>/``
 
 Details
 -------
