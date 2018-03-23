@@ -90,7 +90,7 @@ There are a predefined environments suitable for JQ jobs at
 - ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv``
 - ``/storage/data/projects/comp_support/climate_exporer_data_prep/climatological_means/venv_climdex``
 
-which should be used in most cases. xxx
+which should be used in most cases.
 
 In short, your JQ configuration should normally be::
 
@@ -142,8 +142,6 @@ Action              Effect
                     and submit a PBS job for each, updating the queue entries accordingly.
 
 ``summarize``       Summarize entries in ``generate_climos`` queue (generate statistics)
-
-``update-email``    Update ``generate_climos`` queue using PBS status email
 
 ``update-qstat``    Update ``generate_climos`` queue using PBS qstat
 =================== ============================================
@@ -229,13 +227,13 @@ the actions that cause transitions from one state to another. The general format
     Now there is also a PBS status for the job, but it is not updated dynamically in JQ.
 
     *Action*: Update status while PBS job is running 
-        | ``jq update-email`` or ``jq update-qstat``
+        | ``jq update-qstat``
         | --> ``RUNNING``
     *Action*: Update status after PBS job has terminated with success 
-        | ``jq update-email`` or ``jq update-qstat``
+        | ``jq update-qstat``
         | --> ``SUCCESS``
     *Action*: Update status after PBS job has terminated with error 
-        | ``jq update-email`` or ``jq update-qstat``
+        | ``jq update-qstat``
         | --> ``ERROR``
     *Action*: Reset (place job in NEW status).
         | Note: This makes the job elegible for submission again, but it
@@ -247,10 +245,10 @@ the actions that cause transitions from one state to another. The general format
     Job has been submitted to PBS, and PBS job is known to be running.
 
     *Action*: Update status after PBS job has terminated with success 
-        | ``jq update-email`` or ``jq update-qstat``
+        | ``jq update-qstat``
         | --> ``SUCCESS``
     *Action*: Update status after PBS job has terminated with error 
-        | ``jq update-email`` or ``jq update-qstat``
+        | ``jq update-qstat``
         | --> ``ERROR``
 
 ``SUCCESS``
